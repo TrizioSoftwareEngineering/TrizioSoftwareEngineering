@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SA Insurance Agent Risk Assessment Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .tab-container {
+            background: white;
+        }
+
+        .tab-navigation {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #6c757d;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-button.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            transform: translateY(3px);
+        }
+
+        .tab-button:hover:not(.active) {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .agent-info {
+            background: #f8f9fa;
+            padding: 25px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .info-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-group label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+
+        .info-group input, .info-group select {
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .info-group input:focus, .info-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .content {
+            padding: 0;
+        }
+
+        .section {
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .section-header {
+            background: #495057;
+            color: white;
+            padding: 15px 25px;
+            cursor: pointer;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .section-header:hover {
+            background: #343a40;
+        }
+
+        .section-header h3 {
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        .score-badge {
+            background: white;
+            color: #495057;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-left: auto;
+        }
+
+        .section-content {
+            padding: 25px;
+            display: none;
+        }
+
+        .section-content.active {
+            display: block;
+        }
+
+        .audit-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .audit-table th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            border-bottom: 2px solid #dee2e6;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .audit-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+            vertical-align: middle;
+        }
+
+        .audit-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .requirement {
+            font-weight: 500;
+            color: #495057;
+            max-width: 300px;
+        }
+
+        .status-select {
+            padding: 8px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            background: white;
+            font-size: 14px;
+            min-width: 150px;
+            transition: border-color 0.3s ease;
+        }
+
+        .status-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .score-cell {
+            font-weight: 600;
+            text-align: center;
+            color: white;
+            border-radius: 6px;
+            padding: 8px;
+        }
+
+        .score-0 { background: #dc3545; }
+        .score-25 { background: #fd7e14; }
+        .score-50 { background: #ffc107; color: #212529; }
+        .score-75 { background: #20c997; }
+        .score-100 { background: #28a745; }
+
+        .summary {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .summary-card h4 {
+            color: #495057;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .summary-score {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .risk-level {
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin: 20px 0;
+        }
+
+        .risk-low { background: #d4edda; color: #155724; }
+        .risk-medium { background: #fff3cd; color: #856404; }
+        .risk-high { background: #f8d7da; color: #721c24; }
+        .risk-critical { background: #d1ecf1; color: #0c5460; }
+
+        .export-buttons {
+            margin: 20px 0;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            margin: 0 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .toggle-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-icon.rotated {
+            transform: rotate(180deg);
+        }
+
+        .charts-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 20px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 350px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .chart-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>South African Insurance Agent Risk Assessment</h1>
+            <p>Comprehensive FSCA & FAIS Compliance Audit Tool</p>
+        </div>
+
+        <div class="tab-container">
+            <div class="tab-navigation">
+                <button class="tab-button active" onclick="switchTab('summary')">
+                    📊 Assessment Summary
+                </button>
+                <button class="tab-button" onclick="switchTab('criteria')">
+                    📋 Assessment Criteria
+                </button>
+            </div>
+
+            <!-- Assessment Summary Tab -->
+            <div id="summary-tab" class="tab-content active">
+                <div class="agent-info">
+                    <h3 style="color: #495057; margin-bottom: 20px; text-align: center;">Agent Information</h3>
+                    <div class="info-grid">
+                        <div class="info-group">
+                            <label for="agentName">Agent Name:</label>
+                            <input type="text" id="agentName" placeholder="Enter agent name" onchange="updateSummary()">
+                        </div>
+                        <div class="info-group">
+                            <label for="fspNumber">FSP Number:</label>
+                            <input type="text" id="fspNumber" placeholder="Enter FSP license number" onchange="updateSummary()">
+                        </div>
+                        <div class="info-group">
+                            <label for="auditDate">Audit Date:</label>
+                            <input type="date" id="auditDate" onchange="updateSummary()">
+                        </div>
+                        <div class="info-group">
+                            <label for="auditor">Auditor:</label>
+                            <input type="text" id="auditor" placeholder="Enter auditor name" onchange="updateSummary()">
+                        </div>
+                        <div class="info-group">
+                            <label for="businessType">Business Type:</label>
+                            <select id="businessType" onchange="updateSummary()">
+                                <option value="">Select business type</option>
+                                <option value="short-term">Short-term Insurance</option>
+                                <option value="long-term">Long-term Insurance</option>
+                                <option value="both">Both Short & Long-term</option>
+                                <option value="investment">Investment Services</option>
+                                <option value="comprehensive">Comprehensive FSP</option>
+                            </select>
+                        </div>
+                        <div class="info-group">
+                            <label for="experience">Years Experience:</label>
+                            <select id="experience" onchange="updateSummary()">
+                                <option value="">Select experience</option>
+                                <option value="0-2">0-2 years</option>
+                                <option value="3-5">3-5 years</option>
+                                <option value="6-10">6-10 years</option>
+                                <option value="11-15">11-15 years</option>
+                                <option value="15+">15+ years</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-section">
+                    <h2 style="text-align: center; color: #495057; margin-bottom: 10px;">Compliance Visualization</h2>
+                    <p style="text-align: center; color: #6c757d; margin-bottom: 30px;">Visual representation of compliance scores across all audit areas</p>
+                    
+                    <div class="charts-grid">
+                        <div class="chart-container">
+                            <div class="chart-title">Compliance Scores by Category</div>
+                            <div class="chart-wrapper">
+                                <canvas id="polarChart" class="chart-canvas"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <div class="chart-title">Risk Distribution Analysis</div>
+                            <div class="chart-wrapper">
+                                <canvas id="riskChart" class="chart-canvas"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="summary">
+                    <h2>Risk Assessment Summary</h2>
+                    <div class="summary-grid">
+                        <div class="summary-card">
+                            <h4>Overall Compliance Score</h4>
+                            <div class="summary-score" id="overall-score" style="color: #667eea;">0%</div>
+                            <p>Weighted Average</p>
+                        </div>
+                        <div class="summary-card">
+                            <h4>Critical Issues</h4>
+                            <div class="summary-score" id="critical-count" style="color: #dc3545;">0</div>
+                            <p>Requires Immediate Action</p>
+                        </div>
+                        <div class="summary-card">
+                            <h4>Areas Reviewed</h4>
+                            <div class="summary-score" id="areas-count" style="color: #28a745;">6</div>
+                            <p>Compliance Categories</p>
+                        </div>
+                        <div class="summary-card">
+                            <h4>Next Audit</h4>
+                            <div class="summary-score" id="next-audit" style="color: #6f42c1; font-size: 1.2rem;">TBD</div>
+                            <p>Recommended Frequency</p>
+                        </div>
+                    </div>
+                    
+                    <div class="risk-level" id="risk-level">
+                        CALCULATING RISK LEVEL...
+                    </div>
+
+                    <div class="export-buttons">
+                        <button class="btn" onclick="exportToCSV()">Export to CSV</button>
+                        <button class="btn" onclick="generateReport()">Generate Report</button>
+                        <button class="btn" onclick="printAudit()">Print Audit</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assessment Criteria Tab -->
+            <div id="criteria-tab" class="tab-content">
+                <div style="padding: 30px; text-align: center; background: #f8f9fa; border-bottom: 1px solid #e9ecef;">
+                    <h2 style="color: #495057; margin-bottom: 10px;">Assessment Criteria & Questions</h2>
+                    <p style="color: #6c757d;">Complete the assessment below to calculate compliance scores and risk levels</p>
+                </div>
+                <div class="content">
+                    <!-- FSCA Licensing Section -->
+                    <div class="section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <h3>FSCA Licensing & Authorization</h3>
+                            <span class="score-badge" id="licensing-score">0%</span>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <table class="audit-table">
+                                <thead>
+                                    <tr>
+                                        <th>Requirement</th>
+                                        <th>Status</th>
+                                        <th>Score</th>
+                                        <th>Weight</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="licensing-tbody">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Fit & Proper Requirements Section -->
+                    <div class="section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <h3>Fit & Proper Requirements</h3>
+                            <span class="score-badge" id="fitproper-score">0%</span>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <table class="audit-table">
+                                <thead>
+                                    <tr>
+                                        <th>Requirement</th>
+                                        <th>Status</th>
+                                        <th>Score</th>
+                                        <th>Weight</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fitproper-tbody">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Professional Indemnity Section -->
+                    <div class="section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <h3>Professional Indemnity & Insurance</h3>
+                            <span class="score-badge" id="indemnity-score">0%</span>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <table class="audit-table">
+                                <thead>
+                                    <tr>
+                                        <th>Requirement</th>
+                                        <th>Status</th>
+                                        <th>Score</th>
+                                        <th>Weight</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="indemnity-tbody">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Customer Protection Section -->
+                    <div class="section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <h3>Customer Protection & Disclosure</h3>
+                            <span class="score-badge" id="customer-score">0%</span>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <table class="audit-table">
+                                <thead>
+                                    <tr>
+                                        <th>Requirement</th>
+                                        <th>Status</th>
+                                        <th>Score</th>
+                                        <th>Weight</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="customer-tbody">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Data Protection Section -->
+                    <div class="section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <h3>FICA & PoPIA Compliance</h3>
+                            <span class="score-badge" id="data-score">0%</span>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <table class="audit-table">
+                                <thead>
+                                    <tr>
+                                        <th>Requirement</th>
+                                        <th>Status</th>
+                                        <th>Score</th>
+                                        <th>Weight</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="data-tbody">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Financial Management Section -->
+                    <div class="section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <h3>Financial Management & Controls</h3>
+                            <span class="score-badge" id="financial-score">0%</span>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <table class="audit-table">
+                                <thead>
+                                    <tr>
+                                        <th>Requirement</th>
+                                        <th>Status</th>
+                                        <th>Score</th>
+                                        <th>Weight</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="financial-tbody">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script>
+        // Tab switching functionality
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            // Add active class to clicked tab button
+            event.target.classList.add('active');
+            
+            // Update charts if switching to summary tab
+            if (tabName === 'summary') {
+                setTimeout(() => {
+                    updateCharts();
+                }, 100);
+            }
+        }
+
+        // Update summary when agent info changes
+        function updateSummary() {
+            // This function can be extended to update summary info in real-time
+            // Currently just triggers chart updates
+            setTimeout(() => {
+                updateCharts();
+            }, 100);
+        }
+        let polarChart = null;
+        let riskChart = null;
+
+        // Initialize charts
+        function initializeCharts() {
+            const polarCtx = document.getElementById('polarChart').getContext('2d');
+            const riskCtx = document.getElementById('riskChart').getContext('2d');
+
+            // Polar Chart for Compliance Scores
+            polarChart = new Chart(polarCtx, {
+                type: 'polarArea',
+                data: {
+                    labels: [
+                        'FSCA Licensing & Authorization',
+                        'Fit & Proper Requirements',
+                        'Professional Indemnity Insurance',
+                        'Customer Protection & Disclosure',
+                        'FICA & PoPIA Compliance',
+                        'Financial Management & Controls'
+                    ],
+                    datasets: [{
+                        label: 'Compliance Score (%)',
+                        data: [0, 0, 0, 0, 0, 0],
+                        backgroundColor: [
+                            'rgba(102, 126, 234, 0.6)',
+                            'rgba(118, 75, 162, 0.6)',
+                            'rgba(255, 193, 7, 0.6)',
+                            'rgba(40, 167, 69, 0.6)',
+                            'rgba(220, 53, 69, 0.6)',
+                            'rgba(111, 66, 193, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(102, 126, 234, 1)',
+                            'rgba(118, 75, 162, 1)',
+                            'rgba(255, 193, 7, 1)',
+                            'rgba(40, 167, 69, 1)',
+                            'rgba(220, 53, 69, 1)',
+                            'rgba(111, 66, 193, 1)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 20,
+                            bottom: 20,
+                            left: 20,
+                            right: 20
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false // Hide legend since we'll show labels on the chart
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    return context[0].label;
+                                },
+                                label: function(context) {
+                                    return 'Score: ' + context.parsed + '%';
+                                },
+                                afterLabel: function(context) {
+                                    const score = context.parsed;
+                                    if (score >= 90) return '✅ Excellent Compliance';
+                                    if (score >= 75) return '✓ Good Compliance';
+                                    if (score >= 50) return '⚠️ Needs Improvement';
+                                    return '❌ Critical Issues';
+                                }
+                            },
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: 'white',
+                            bodyColor: 'white',
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100,
+                            min: 0,
+                            ticks: {
+                                stepSize: 20,
+                                font: {
+                                    size: 10,
+                                    weight: 'bold'
+                                },
+                                color: '#495057',
+                                backdropColor: 'rgba(255, 255, 255, 0.8)',
+                                backdropPadding: 4,
+                                showLabelBackdrop: true
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.15)',
+                                lineWidth: 1,
+                                circular: true
+                            },
+                            angleLines: {
+                                display: true,
+                                color: 'rgba(0, 0, 0, 0.3)',
+                                lineWidth: 2
+                            },
+                            pointLabels: {
+                                display: true,
+                                centerPointLabels: false,
+                                font: {
+                                    size: 11,
+                                    weight: 'bold',
+                                    family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                                },
+                                color: '#2c3e50',
+                                padding: 15,
+                                callback: function(label) {
+                                    // Wrap long labels
+                                    const words = label.split(' ');
+                                    if (words.length > 2) {
+                                        const mid = Math.ceil(words.length / 2);
+                                        return [
+                                            words.slice(0, mid).join(' '),
+                                            words.slice(mid).join(' ')
+                                        ];
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true,
+                        duration: 1200,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+
+            // Risk Distribution Chart
+            riskChart = new Chart(riskCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Compliant (100%)', 'Minor Issues (75%)', 'Major Issues (25%)', 'Critical (0%)'],
+                    datasets: [{
+                        data: [0, 0, 0, 0],
+                        backgroundColor: [
+                            'rgba(40, 167, 69, 0.8)',
+                            'rgba(255, 193, 7, 0.8)',
+                            'rgba(253, 126, 20, 0.8)',
+                            'rgba(220, 53, 69, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(40, 167, 69, 1)',
+                            'rgba(255, 193, 7, 1)',
+                            'rgba(253, 126, 20, 1)',
+                            'rgba(220, 53, 69, 1)'
+                        ],
+                        borderWidth: 2,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 10,
+                            bottom: 10,
+                            left: 10,
+                            right: 10
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 12,
+                                usePointStyle: true,
+                                font: {
+                                    size: 11
+                                },
+                                boxWidth: 12
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                                    return context.label + ': ' + context.parsed + ' items (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    },
+                    cutout: '55%',
+                    animation: {
+                        animateRotate: true,
+                        duration: 800
+                    }
+                }
+            });
+        }
+
+        // Update charts with current data
+        function updateCharts() {
+            if (!polarChart || !riskChart) return;
+
+            // Update polar chart data
+            const polarData = [];
+            const sectionKeys = Object.keys(auditCriteria);
+            
+            sectionKeys.forEach(sectionKey => {
+                const score = calculateSectionScore(sectionKey);
+                polarData.push(score);
+            });
+
+            polarChart.data.datasets[0].data = polarData;
+            polarChart.update('active');
+
+            // Update risk distribution chart
+            let compliantCount = 0;
+            let minorCount = 0;
+            let majorCount = 0;
+            let criticalCount = 0;
+
+            sectionKeys.forEach(sectionKey => {
+                auditCriteria[sectionKey].items.forEach((item, index) => {
+                    const scoreCell = document.getElementById(`${sectionKey}-${index}-score`);
+                    const score = parseInt(scoreCell.textContent) || 0;
+                    
+                    if (score === 100) compliantCount++;
+                    else if (score === 75) minorCount++;
+                    else if (score === 25) majorCount++;
+                    else if (score === 0) criticalCount++;
+                });
+            });
+
+            riskChart.data.datasets[0].data = [compliantCount, minorCount, majorCount, criticalCount];
+            riskChart.update('active');
+        }
+        const auditCriteria = {
+            licensing: {
+                title: "FSCA Licensing & Authorization",
+                weight: 25,
+                items: [
+                    { 
+                        requirement: "Valid FSP license issued by FSCA", 
+                        weight: 30,
+                        options: [
+                            { value: "compliant", text: "Valid and current license", score: 100 },
+                            { value: "minor", text: "License valid, minor admin issues", score: 75 },
+                            { value: "expired", text: "License expired <30 days", score: 25 },
+                            { value: "invalid", text: "License expired >30 days or invalid", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "License covers all products being sold", 
+                        weight: 25,
+                        options: [
+                            { value: "compliant", text: "All products covered", score: 100 },
+                            { value: "minor", text: "Minor product category gaps", score: 75 },
+                            { value: "major", text: "Major product categories missing", score: 25 },
+                            { value: "non-compliant", text: "Selling outside license scope", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Key Individual appointments registered", 
+                        weight: 20,
+                        options: [
+                            { value: "compliant", text: "All KIs properly registered", score: 100 },
+                            { value: "minor", text: "KI registration pending <30 days", score: 75 },
+                            { value: "major", text: "KI registration overdue", score: 25 },
+                            { value: "non-compliant", text: "No KI registration", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "No outstanding regulatory actions", 
+                        weight: 25,
+                        options: [
+                            { value: "compliant", text: "No regulatory issues", score: 100 },
+                            { value: "minor", text: "Minor administrative issues", score: 75 },
+                            { value: "major", text: "Outstanding regulatory queries", score: 25 },
+                            { value: "critical", text: "Active enforcement action", score: 0 }
+                        ]
+                    }
+                ]
+            },
+            fitproper: {
+                title: "Fit & Proper Requirements",
+                weight: 30,
+                items: [
+                    { 
+                        requirement: "CPD requirements current (6-18 hours annually)", 
+                        weight: 30,
+                        options: [
+                            { value: "compliant", text: "CPD fully compliant", score: 100 },
+                            { value: "minor", text: "CPD 80-99% complete", score: 75 },
+                            { value: "major", text: "CPD 50-79% complete", score: 25 },
+                            { value: "non-compliant", text: "CPD <50% complete", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Class of business training completed", 
+                        weight: 25,
+                        options: [
+                            { value: "compliant", text: "All training completed", score: 100 },
+                            { value: "minor", text: "Minor training gaps", score: 75 },
+                            { value: "major", text: "Major training gaps", score: 25 },
+                            { value: "non-compliant", text: "No training completed", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Product-specific training current", 
+                        weight: 20,
+                        options: [
+                            { value: "compliant", text: "All product training current", score: 100 },
+                            { value: "minor", text: "Some products need updating", score: 75 },
+                            { value: "major", text: "Multiple products out of date", score: 25 },
+                            { value: "non-compliant", text: "No product training", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Competence register maintained", 
+                        weight: 15,
+                        options: [
+                            { value: "compliant", text: "Register complete and current", score: 100 },
+                            { value: "minor", text: "Register mostly complete", score: 75 },
+                            { value: "major", text: "Register incomplete", score: 25 },
+                            { value: "non-compliant", text: "No competence register", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Ethics and Practice Standards training", 
+                        weight: 10,
+                        options: [
+                            { value: "compliant", text: "Ethics training current", score: 100 },
+                            { value: "minor", text: "Ethics training due soon", score: 75 },
+                            { value: "major", text: "Ethics training overdue", score: 25 },
+                            { value: "non-compliant", text: "No ethics training", score: 0 }
+                        ]
+                    }
+                ]
+            },
+            indemnity: {
+                title: "Professional Indemnity & Insurance",
+                weight: 20,
+                items: [
+                    { 
+                        requirement: "Professional Indemnity Insurance (R1M-R5M)", 
+                        weight: 40,
+                        options: [
+                            { value: "compliant", text: "Adequate PI cover in place", score: 100 },
+                            { value: "minor", text: "PI cover slightly below requirement", score: 75 },
+                            { value: "major", text: "PI cover significantly inadequate", score: 25 },
+                            { value: "critical", text: "No PI cover or lapsed", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Claims-made policy structure", 
+                        weight: 20,
+                        options: [
+                            { value: "compliant", text: "Proper claims-made structure", score: 100 },
+                            { value: "minor", text: "Minor policy structure issues", score: 75 },
+                            { value: "major", text: "Policy structure inadequate", score: 25 },
+                            { value: "non-compliant", text: "Wrong policy type", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Fidelity guarantee (where required)", 
+                        weight: 20,
+                        options: [
+                            { value: "compliant", text: "Fidelity cover adequate", score: 100 },
+                            { value: "minor", text: "Minor fidelity gaps", score: 75 },
+                            { value: "major", text: "Fidelity cover inadequate", score: 25 },
+                            { value: "non-applicable", text: "Not required for business type", score: 100 }
+                        ]
+                    },
+                    { 
+                        requirement: "Insurance documentation current", 
+                        weight: 20,
+                        options: [
+                            { value: "compliant", text: "All documentation current", score: 100 },
+                            { value: "minor", text: "Some documentation outdated", score: 75 },
+                            { value: "major", text: "Documentation incomplete", score: 25 },
+                            { value: "non-compliant", text: "No proper documentation", score: 0 }
+                        ]
+                    }
+                ]
+            },
+            customer: {
+                title: "Customer Protection & Disclosure",
+                weight: 15,
+                items: [
+                    { 
+                        requirement: "FAIS disclosure requirements met", 
+                        weight: 30,
+                        options: [
+                            { value: "compliant", text: "All disclosures complete", score: 100 },
+                            { value: "minor", text: "Minor disclosure gaps", score: 75 },
+                            { value: "major", text: "Major disclosure gaps", score: 25 },
+                            { value: "non-compliant", text: "No proper disclosures", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Conflicts of interest disclosed", 
+                        weight: 25,
+                        options: [
+                            { value: "compliant", text: "All conflicts disclosed", score: 100 },
+                            { value: "minor", text: "Some conflicts not disclosed", score: 75 },
+                            { value: "major", text: "Major conflicts undisclosed", score: 25 },
+                            { value: "non-compliant", text: "No conflict disclosure", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Record of Advice (ROA) complete", 
+                        weight: 25,
+                        options: [
+                            { value: "compliant", text: "ROA complete and signed", score: 100 },
+                            { value: "minor", text: "ROA mostly complete", score: 75 },
+                            { value: "major", text: "ROA incomplete", score: 25 },
+                            { value: "non-compliant", text: "No ROA provided", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Needs analysis documented", 
+                        weight: 20,
+                        options: [
+                            { value: "compliant", text: "Comprehensive needs analysis", score: 100 },
+                            { value: "minor", text: "Basic needs analysis", score: 75 },
+                            { value: "major", text: "Inadequate needs analysis", score: 25 },
+                            { value: "non-compliant", text: "No needs analysis", score: 0 }
+                        ]
+                    }
+                ]
+            },
+            data: {
+                title: "FICA & PoPIA Compliance",
+                weight: 5,
+                items: [
+                    { 
+                        requirement: "FICA client verification procedures", 
+                        weight: 40,
+                        options: [
+                            { value: "compliant", text: "FICA fully compliant", score: 100 },
+                            { value: "minor", text: "Minor FICA gaps", score: 75 },
+                            { value: "major", text: "Major FICA non-compliance", score: 25 },
+                            { value: "non-compliant", text: "No FICA procedures", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "PoPIA data protection measures", 
+                        weight: 30,
+                        options: [
+                            { value: "compliant", text: "PoPIA fully compliant", score: 100 },
+                            { value: "minor", text: "Minor data protection gaps", score: 75 },
+                            { value: "major", text: "Major data protection issues", score: 25 },
+                            { value: "non-compliant", text: "No data protection measures", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Data retention policies", 
+                        weight: 30,
+                        options: [
+                            { value: "compliant", text: "Proper retention policies", score: 100 },
+                            { value: "minor", text: "Some retention issues", score: 75 },
+                            { value: "major", text: "Inadequate retention", score: 25 },
+                            { value: "non-compliant", text: "No retention policies", score: 0 }
+                        ]
+                    }
+                ]
+            },
+            financial: {
+                title: "Financial Management & Controls",
+                weight: 5,
+                items: [
+                    { 
+                        requirement: "Premium handling procedures", 
+                        weight: 35,
+                        options: [
+                            { value: "compliant", text: "Proper premium handling", score: 100 },
+                            { value: "minor", text: "Minor premium handling issues", score: 75 },
+                            { value: "major", text: "Major premium handling flaws", score: 25 },
+                            { value: "non-compliant", text: "No proper procedures", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Trust account management", 
+                        weight: 35,
+                        options: [
+                            { value: "compliant", text: "Trust accounts properly managed", score: 100 },
+                            { value: "minor", text: "Minor trust account issues", score: 75 },
+                            { value: "major", text: "Trust account irregularities", score: 25 },
+                            { value: "non-applicable", text: "No trust accounts required", score: 100 }
+                        ]
+                    },
+                    { 
+                        requirement: "Financial reporting compliance", 
+                        weight: 30,
+                        options: [
+                            { value: "compliant", text: "Financial reporting current", score: 100 },
+                            { value: "minor", text: "Minor reporting delays", score: 75 },
+                            { value: "major", text: "Reporting significantly overdue", score: 25 },
+                            { value: "non-compliant", text: "No financial reporting", score: 0 }
+                        ]
+                    }
+                ]
+            }
+        };
+
+        // Initialize the audit tool
+        function initializeAudit() {
+            document.getElementById('auditDate').value = new Date().toISOString().split('T')[0];
+            
+            Object.keys(auditCriteria).forEach(sectionKey => {
+                populateSection(sectionKey, auditCriteria[sectionKey]);
+            });
+            
+            // Initialize charts after a short delay to ensure DOM is ready
+            setTimeout(() => {
+                initializeCharts();
+                calculateOverallScore();
+            }, 100);
+        }
+
+        // Populate a section with its criteria
+        function populateSection(sectionKey, sectionData) {
+            const tbody = document.getElementById(`${sectionKey}-tbody`);
+            tbody.innerHTML = '';
+            
+            sectionData.items.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="requirement">${item.requirement}</td>
+                    <td>
+                        <select class="status-select" onchange="updateScore('${sectionKey}', ${index}, this.value)" data-section="${sectionKey}" data-index="${index}">
+                            <option value="">Select status...</option>
+                            ${item.options.map(option => `<option value="${option.value}" data-score="${option.score}">${option.text}</option>`).join('')}
+                        </select>
+                    </td>
+                    <td>
+                        <div class="score-cell score-0" id="${sectionKey}-${index}-score">0</div>
+                    </td>
+                    <td style="text-align: center; font-weight: 600;">${item.weight}%</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Update score when a dropdown changes
+        function updateScore(sectionKey, itemIndex, selectedValue) {
+            const item = auditCriteria[sectionKey].items[itemIndex];
+            const selectedOption = item.options.find(opt => opt.value === selectedValue);
+            const score = selectedOption ? selectedOption.score : 0;
+            
+            const scoreCell = document.getElementById(`${sectionKey}-${itemIndex}-score`);
+            scoreCell.textContent = score;
+            scoreCell.className = `score-cell score-${score}`;
+            
+            calculateSectionScore(sectionKey);
+            calculateOverallScore();
+            updateCharts(); // Update charts when scores change
+        }
+
+        // Calculate section score
+        function calculateSectionScore(sectionKey) {
+            const section = auditCriteria[sectionKey];
+            let totalWeightedScore = 0;
+            let totalWeight = 0;
+            
+            section.items.forEach((item, index) => {
+                const scoreCell = document.getElementById(`${sectionKey}-${index}-score`);
+                const score = parseInt(scoreCell.textContent) || 0;
+                totalWeightedScore += (score * item.weight);
+                totalWeight += item.weight;
+            });
+            
+            const sectionScore = totalWeight > 0 ? Math.round(totalWeightedScore / totalWeight) : 0;
+            document.getElementById(`${sectionKey}-score`).textContent = `${sectionScore}%`;
+            
+            return sectionScore;
+        }
+
+        // Calculate overall risk score
+        function calculateOverallScore() {
+            let totalWeightedScore = 0;
+            let totalWeight = 0;
+            let criticalIssues = 0;
+            
+            Object.keys(auditCriteria).forEach(sectionKey => {
+                const sectionScore = calculateSectionScore(sectionKey);
+                const sectionWeight = auditCriteria[sectionKey].weight;
+                
+                totalWeightedScore += (sectionScore * sectionWeight);
+                totalWeight += sectionWeight;
+                
+                // Count critical issues (scores of 0)
+                auditCriteria[sectionKey].items.forEach((item, index) => {
+                    const scoreCell = document.getElementById(`${sectionKey}-${index}-score`);
+                    const score = parseInt(scoreCell.textContent) || 0;
+                    if (score === 0) criticalIssues++;
+                });
+            });
+            
+            const overallScore = totalWeight > 0 ? Math.round(totalWeightedScore / totalWeight) : 0;
+            
+            // Update summary
+            document.getElementById('overall-score').textContent = `${overallScore}%`;
+            document.getElementById('critical-count').textContent = criticalIssues;
+            
+            // Determine risk level and next audit frequency
+            updateRiskLevel(overallScore, criticalIssues);
+        }
+
+        // Update risk level and recommendations
+        function updateRiskLevel(score, criticalIssues) {
+            const riskLevelDiv = document.getElementById('risk-level');
+            const nextAuditDiv = document.getElementById('next-audit');
+            
+            let riskLevel, riskClass, nextAudit;
+            
+            if (criticalIssues > 3 || score < 40) {
+                riskLevel = "CRITICAL RISK";
+                riskClass = "risk-critical";
+                nextAudit = "1 Month";
+            } else if (criticalIssues > 1 || score < 60) {
+                riskLevel = "HIGH RISK";
+                riskClass = "risk-high";
+                nextAudit = "3 Months";
+            } else if (criticalIssues > 0 || score < 80) {
+                riskLevel = "MEDIUM RISK";
+                riskClass = "risk-medium";
+                nextAudit = "6 Months";
+            } else {
+                riskLevel = "LOW RISK";
+                riskClass = "risk-low";
+                nextAudit = "12 Months";
+            }
+            
+            riskLevelDiv.textContent = riskLevel;
+            riskLevelDiv.className = `risk-level ${riskClass}`;
+            nextAuditDiv.innerHTML = `<div class="summary-score" style="color: #6f42c1; font-size: 1.2rem;">${nextAudit}</div>`;
+        }
+
+        // Toggle section visibility
+        function toggleSection(header) {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('.toggle-icon');
+            
+            if (content.classList.contains('active')) {
+                content.classList.remove('active');
+                icon.classList.remove('rotated');
+            } else {
+                content.classList.add('active');
+                icon.classList.add('rotated');
+            }
+        }
+
+        // Export to CSV
+        function exportToCSV() {
+            const agentName = document.getElementById('agentName').value || 'Unknown';
+            const fspNumber = document.getElementById('fspNumber').value || 'Unknown';
+            const auditDate = document.getElementById('auditDate').value || new Date().toISOString().split('T')[0];
+            
+            let csv = 'South African Insurance Agent Risk Assessment Report\n\n';
+            csv += `Agent Name,${agentName}\n`;
+            csv += `FSP Number,${fspNumber}\n`;
+            csv += `Audit Date,${auditDate}\n`;
+            csv += `Auditor,${document.getElementById('auditor').value || 'Unknown'}\n\n`;
+            
+            csv += 'Section,Requirement,Status,Score,Weight,Weighted Score\n';
+            
+            Object.keys(auditCriteria).forEach(sectionKey => {
+                const section = auditCriteria[sectionKey];
+                section.items.forEach((item, index) => {
+                    const select = document.querySelector(`select[data-section="${sectionKey}"][data-index="${index}"]`);
+                    const selectedOption = select.options[select.selectedIndex];
+                    const status = selectedOption ? selectedOption.text : 'Not assessed';
+                    const score = parseInt(document.getElementById(`${sectionKey}-${index}-score`).textContent) || 0;
+                    const weightedScore = (score * item.weight / 100).toFixed(2);
+                    
+                    csv += `"${section.title}","${item.requirement}","${status}",${score}%,${item.weight}%,${weightedScore}\n`;
+                });
+            });
+            
+            csv += '\nSummary\n';
+            csv += `Overall Score,${document.getElementById('overall-score').textContent}\n`;
+            csv += `Critical Issues,${document.getElementById('critical-count').textContent}\n`;
+            csv += `Risk Level,${document.getElementById('risk-level').textContent}\n`;
+            csv += `Next Audit,${document.querySelector('#next-audit .summary-score').textContent}\n`;
+            
+            // Download CSV
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `SA_Insurance_Agent_Audit_${agentName.replace(/\s+/g, '_')}_${auditDate}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Generate detailed report
+        function generateReport() {
+            const agentName = document.getElementById('agentName').value || 'Unknown Agent';
+            const fspNumber = document.getElementById('fspNumber').value || 'Unknown';
+            const auditDate = document.getElementById('auditDate').value || new Date().toISOString().split('T')[0];
+            const auditor = document.getElementById('auditor').value || 'Unknown Auditor';
+            const businessType = document.getElementById('businessType').value || 'Unknown';
+            const experience = document.getElementById('experience').value || 'Unknown';
+            
+            const overallScore = document.getElementById('overall-score').textContent;
+            const criticalCount = document.getElementById('critical-count').textContent;
+            const riskLevel = document.getElementById('risk-level').textContent;
+            const nextAudit = document.querySelector('#next-audit .summary-score').textContent;
+            
+            let report = `
+SOUTH AFRICAN INSURANCE AGENT COMPLIANCE AUDIT REPORT
+
+================================================================
+AGENT INFORMATION
+================================================================
+Agent Name: ${agentName}
+FSP Number: ${fspNumber}
+Business Type: ${businessType}
+Experience: ${experience}
+Audit Date: ${auditDate}
+Auditor: ${auditor}
+
+================================================================
+EXECUTIVE SUMMARY
+================================================================
+Overall Compliance Score: ${overallScore}
+Risk Level: ${riskLevel}
+Critical Issues: ${criticalCount}
+Recommended Next Audit: ${nextAudit}
+
+================================================================
+DETAILED FINDINGS
+================================================================
+`;
+
+            Object.keys(auditCriteria).forEach(sectionKey => {
+                const section = auditCriteria[sectionKey];
+                const sectionScore = document.getElementById(`${sectionKey}-score`).textContent;
+                
+                report += `\n${section.title.toUpperCase()} (Weight: ${section.weight}%)\n`;
+                report += `Section Score: ${sectionScore}\n`;
+                report += `${'='.repeat(50)}\n`;
+                
+                section.items.forEach((item, index) => {
+                    const select = document.querySelector(`select[data-section="${sectionKey}"][data-index="${index}"]`);
+                    const selectedOption = select.options[select.selectedIndex];
+                    const status = selectedOption ? selectedOption.text : 'Not assessed';
+                    const score = parseInt(document.getElementById(`${sectionKey}-${index}-score`).textContent) || 0;
+                    
+                    report += `\n• ${item.requirement}\n`;
+                    report += `  Status: ${status}\n`;
+                    report += `  Score: ${score}% (Weight: ${item.weight}%)\n`;
+                    
+                    if (score === 0) {
+                        report += `  ⚠️  CRITICAL ISSUE - IMMEDIATE ACTION REQUIRED\n`;
+                    } else if (score < 50) {
+                        report += `  ⚡ HIGH PRIORITY - Action needed\n`;
+                    }
+                });
+            });
+            
+            report += `\n\n================================================================
+RECOMMENDATIONS
+================================================================
+`;
+
+            // Generate recommendations based on risk level
+            if (riskLevel.includes('CRITICAL')) {
+                report += `
+IMMEDIATE ACTIONS REQUIRED:
+• Schedule urgent remediation meeting within 48 hours
+• Suspend any high-risk activities until critical issues resolved
+• Implement daily monitoring until compliance achieved
+• Consider regulatory notification if required
+• Schedule follow-up audit within 1 month
+`;
+            } else if (riskLevel.includes('HIGH')) {
+                report += `
+HIGH PRIORITY ACTIONS:
+• Develop corrective action plan within 1 week
+• Address all critical issues within 30 days
+• Implement enhanced monitoring procedures
+• Schedule follow-up audit within 3 months
+`;
+            } else if (riskLevel.includes('MEDIUM')) {
+                report += `
+MEDIUM PRIORITY ACTIONS:
+• Develop improvement plan within 2 weeks
+• Address identified gaps within 60 days
+• Maintain current monitoring level
+• Schedule follow-up audit within 6 months
+`;
+            } else {
+                report += `
+MAINTENANCE ACTIONS:
+• Continue current compliance practices
+• Monitor for any changes in regulations
+• Maintain documentation standards
+• Schedule routine audit within 12 months
+`;
+            }
+            
+            report += `\n\n================================================================
+REGULATORY FRAMEWORK REFERENCE
+================================================================
+• Financial Advisory and Intermediary Services Act 37 of 2002
+• FSCA Board Notice 194 (Fit and Proper Requirements)
+• Short-term Insurance Act 53 of 1998
+• Long-term Insurance Act 52 of 1998
+• Financial Intelligence Centre Act 38 of 2001
+• Protection of Personal Information Act 4 of 2013
+
+Report generated on: ${new Date().toLocaleString()}
+`;
+            
+            // Download report
+            const blob = new Blob([report], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `SA_Insurance_Agent_Report_${agentName.replace(/\s+/g, '_')}_${auditDate}.txt`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Print audit
+        function printAudit() {
+            window.print();
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializeAudit);
+    </script>
+</body>
+</html>
