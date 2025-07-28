@@ -284,7 +284,7 @@
         .risk-low { background: #d4edda; color: #155724; }
         .risk-medium { background: #fff3cd; color: #856404; }
         .risk-high { background: #f8d7da; color: #721c24; }
-        .risk-critical { background: #d1ecf1; color: #0c5460; }
+        .risk-critical { background: #f5c6cb; color: #721c24; border: 2px solid #dc3545; }
 
         .export-buttons {
             margin: 20px 0;
@@ -364,6 +364,16 @@
             .charts-grid {
                 grid-template-columns: 1fr;
             }
+        }
+
+        .copyright {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            font-size: 0.9rem;
+            font-weight: 500;
         }
     </style>
 </head>
@@ -484,6 +494,10 @@
                         <button class="btn" onclick="generateReport()">Generate Report</button>
                         <button class="btn" onclick="printAudit()">Print Audit</button>
                     </div>
+                </div>
+                
+                <div class="copyright">
+                    ©2025 TriZio Consulting, All rights reserved.
                 </div>
             </div>
 
@@ -637,6 +651,10 @@
                             </table>
                         </div>
                     </div>
+                </div>
+                
+                <div class="copyright">
+                    ©2025 TriZio Consulting, All rights reserved.
                 </div>
             </div>
         </div>

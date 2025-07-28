@@ -1,0 +1,1835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Third Party Due Diligence Assessment Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a252f 0%, #2c3e50 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            font-weight: 300;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .tab-container {
+            background: white;
+        }
+
+        .tab-navigation {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 3px solid #3498db;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #6c757d;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            position: relative;
+        }
+
+        .tab-button.active {
+            background: white;
+            color: #3498db;
+            border-bottom: 3px solid #3498db;
+            transform: translateY(3px);
+        }
+
+        .tab-button:hover:not(.active) {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .entity-info {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 30px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .info-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-group label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .info-group input, .info-group select, .info-group textarea {
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .info-group input:focus, .info-group select:focus, .info-group textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .info-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .content {
+            padding: 0;
+        }
+
+        .section {
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .section-header {
+            background: #495057;
+            color: white;
+            padding: 18px 30px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .section-header:hover {
+            background: #343a40;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .section-header h3 {
+            font-size: 1.3rem;
+            font-weight: 500;
+        }
+
+        .section-weight {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-left: 10px;
+        }
+
+        .score-badge {
+            background: white;
+            color: #495057;
+            padding: 8px 18px;
+            border-radius: 25px;
+            font-weight: 700;
+            margin-left: auto;
+            margin-right: 15px;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .toggle-icon {
+            transition: transform 0.3s ease;
+            font-size: 1.2rem;
+        }
+
+        .toggle-icon.rotated {
+            transform: rotate(180deg);
+        }
+
+        .section-content {
+            padding: 30px;
+            display: none;
+            background: #fafbfc;
+        }
+
+        .section-content.active {
+            display: block;
+        }
+
+        .audit-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .audit-table th {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .audit-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            vertical-align: middle;
+        }
+
+        .audit-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .audit-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .requirement {
+            font-weight: 500;
+            color: #495057;
+            max-width: 350px;
+            line-height: 1.4;
+        }
+
+        .status-select {
+            padding: 10px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            background: white;
+            font-size: 14px;
+            min-width: 180px;
+            transition: all 0.3s ease;
+        }
+
+        .status-select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .score-cell {
+            font-weight: 700;
+            text-align: center;
+            color: white;
+            border-radius: 8px;
+            padding: 10px;
+            min-width: 60px;
+        }
+
+        .score-0 { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+        .score-25 { background: linear-gradient(135deg, #e67e22, #d35400); }
+        .score-50 { background: linear-gradient(135deg, #f39c12, #e67e22); color: #2c3e50; }
+        .score-75 { background: linear-gradient(135deg, #27ae60, #229954); }
+        .score-100 { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+
+        .summary {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 40px;
+            text-align: center;
+        }
+
+        .summary h2 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+            font-weight: 300;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border-top: 4px solid #3498db;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+
+        .summary-card h4 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .summary-score {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .summary-card p {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .risk-level {
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 1.4rem;
+            margin: 30px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .risk-low { 
+            background: linear-gradient(135deg, #d4edda, #c3e6cb); 
+            color: #155724; 
+            border: 2px solid #b8dabc;
+        }
+        .risk-medium { 
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7); 
+            color: #856404; 
+            border: 2px solid #ffeaa7;
+        }
+        .risk-high { 
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb); 
+            color: #721c24; 
+            border: 2px solid #f5c6cb;
+        }
+        .risk-critical { 
+            background: linear-gradient(135deg, #dc2626, #b91c1c); 
+            color: #ffffff; 
+            border: 2px solid #b91c1c;
+        }
+
+        .export-buttons {
+            margin: 30px 0;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
+        }
+
+        .charts-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            padding: 40px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 30px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border-top: 4px solid #3498db;
+        }
+
+        .chart-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 25px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .chart-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .recommendations-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .recommendation-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-left: 4px solid #3498db;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .recommendation-card h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+        }
+
+        .recommendation-card p {
+            color: #495057;
+            line-height: 1.5;
+            position: relative;
+            z-index: 1;
+        }
+
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Third Party Due Diligence Assessment</h1>
+            <p>Comprehensive Risk Evaluation & Compliance Assessment Tool</p>
+        </div>
+
+        <div class="tab-container">
+            <div class="tab-navigation">
+                <button class="tab-button active" onclick="switchTab('summary')">
+                    📊 Assessment Dashboard
+                </button>
+                <button class="tab-button" onclick="switchTab('criteria')">
+                    📋 Due Diligence Criteria
+                </button>
+                <button class="tab-button" onclick="switchTab('recommendations')">
+                    💡 Recommendations
+                </button>
+            </div>
+
+            <!-- Assessment Dashboard Tab -->
+            <div id="summary-tab" class="tab-content active">
+                <div class="entity-info">
+                    <h3 style="color: #2c3e50; margin-bottom: 25px; text-align: center; font-size: 1.5rem;">Third Party Information</h3>
+                    <div class="info-grid">
+                        <div class="info-group">
+                            <label for="entityName">Entity/Company Name:</label>
+                            <input type="text" id="entityName" placeholder="Enter company name" onchange="updateSummary()">
+                        </div>
+                        <div class="info-group">
+                            <label for="registrationNumber">Registration Number:</label>
+                            <input type="text" id="registrationNumber" placeholder="Enter registration number" onchange="updateSummary()">
+                        </div>
+                        <div class="info-group">
+                            <label for="assessmentDate">Assessment Date:</label>
+                            <input type="date" id="assessmentDate" onchange="updateSummary()">
+                        </div>
+                        <div class="info-group">
+                            <label for="assessor">Assessor:</label>
+                            <input type="text" id="assessor" placeholder="Enter assessor name" onchange="updateSummary()">
+                        </div>
+                        <div class="info-group">
+                            <label for="serviceType">Service Type:</label>
+                            <select id="serviceType" onchange="updateSummary()">
+                                <option value="">Select service type</option>
+                                <option value="financial">Financial Services</option>
+                                <option value="technology">Technology/IT Services</option>
+                                <option value="consulting">Consulting Services</option>
+                                <option value="outsourcing">Business Process Outsourcing</option>
+                                <option value="vendor">Vendor/Supplier</option>
+                                <option value="intermediary">Insurance Intermediary</option>
+                                <option value="other">Other Professional Services</option>
+                            </select>
+                        </div>
+                        <div class="info-group">
+                            <label for="relationshipValue">Relationship Value (ZAR):</label>
+                            <select id="relationshipValue" onchange="updateSummary()">
+                                <option value="">Select value range</option>
+                                <option value="low">< R500,000</option>
+                                <option value="medium">R500,000 - R5M</option>
+                                <option value="high">R5M - R50M</option>
+                                <option value="critical">> R50M</option>
+                            </select>
+                        </div>
+                        <div class="info-group">
+                            <label for="dataAccess">Data Access Level:</label>
+                            <select id="dataAccess" onchange="updateSummary()">
+                                <option value="">Select access level</option>
+                                <option value="none">No Client Data Access</option>
+                                <option value="limited">Limited Data Access</option>
+                                <option value="moderate">Moderate Data Access</option>
+                                <option value="extensive">Extensive Data Access</option>
+                            </select>
+                        </div>
+                        <div class="info-group">
+                            <label for="businessDescription">Business Description:</label>
+                            <textarea id="businessDescription" placeholder="Brief description of services provided" onchange="updateSummary()"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-section">
+                    <h2 style="text-align: center; color: #2c3e50; margin-bottom: 15px;">Risk Assessment Visualization</h2>
+                    <p style="text-align: center; color: #6c757d; margin-bottom: 35px;">Comprehensive analysis of due diligence scores across all assessment areas</p>
+                    
+                    <div class="charts-grid">
+                        <div class="chart-container">
+                            <div class="chart-title">Due Diligence Scores by Category</div>
+                            <div class="chart-wrapper">
+                                <canvas id="polarChart" class="chart-canvas"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <div class="chart-title">Risk Distribution Analysis</div>
+                            <div class="chart-wrapper">
+                                <canvas id="riskChart" class="chart-canvas"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="summary">
+                    <h2>Due Diligence Summary</h2>
+                    <div class="summary-grid">
+                        <div class="summary-card">
+                            <h4>Overall Risk Score</h4>
+                            <div class="summary-score" id="overall-score" style="color: #3498db;">0%</div>
+                            <p>Weighted Risk Assessment</p>
+                        </div>
+                        <div class="summary-card">
+                            <h4>Critical Issues</h4>
+                            <div class="summary-score" id="critical-count" style="color: #e74c3c;">0</div>
+                            <p>Immediate Action Required</p>
+                        </div>
+                        <div class="summary-card">
+                            <h4>Areas Assessed</h4>
+                            <div class="summary-score" id="areas-count" style="color: #27ae60;">8</div>
+                            <p>Due Diligence Categories</p>
+                        </div>
+                        <div class="summary-card">
+                            <h4>Review Frequency</h4>
+                            <div class="summary-score" id="review-frequency" style="color: #8e44ad; font-size: 1.3rem;">TBD</div>
+                            <p>Recommended Schedule</p>
+                        </div>
+                    </div>
+                    
+                    <div class="risk-level" id="risk-level">
+                        CALCULATING RISK LEVEL...
+                    </div>
+
+                    <div class="export-buttons">
+                        <button class="btn" onclick="exportToCSV()">📊 Export to CSV</button>
+                        <button class="btn" onclick="generateReport()">📄 Generate Report</button>
+                        <button class="btn" onclick="printAssessment()">🖨️ Print Assessment</button>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px; padding: 20px; border-top: 1px solid #dee2e6; text-align: center; color: #6c757d; font-size: 0.9rem; background: #f8f9fa;">
+                    ©2025 TriZio Consulting, All rights reserved.
+                </div>
+            </div>
+
+            <!-- Due Diligence Criteria Tab -->
+            <div id="criteria-tab" class="tab-content">
+                <div style="padding: 35px; text-align: center; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-bottom: 1px solid #dee2e6;">
+                    <h2 style="color: #2c3e50; margin-bottom: 15px;">Due Diligence Assessment Criteria</h2>
+                    <p style="color: #6c757d;">Complete the assessment below to calculate risk scores and determine overall risk rating</p>
+                </div>
+                <div class="content" id="assessment-sections">
+                    <!-- Sections will be dynamically populated -->
+                </div>
+                
+                <div style="margin-top: 30px; padding: 20px; border-top: 1px solid #dee2e6; text-align: center; color: #6c757d; font-size: 0.9rem; background: #f8f9fa;">
+                    ©2025 TriZio Consulting, All rights reserved.
+                </div>
+            </div>
+
+            <!-- Recommendations Tab -->
+            <div id="recommendations-tab" class="tab-content">
+                <div class="recommendations-section">
+                    <h2 style="color: #2c3e50; margin-bottom: 25px; text-align: center;">Risk Management Recommendations</h2>
+                    <div id="recommendations-content">
+                        <p style="text-align: center; color: #6c757d; font-style: italic;">Complete the assessment to generate specific recommendations</p>
+                    </div>
+                    
+                    <div style="margin-top: 30px; padding: 20px; border-top: 1px solid #dee2e6; text-align: center; color: #6c757d; font-size: 0.9rem; background: #f8f9fa;">
+                        ©2025 TriZio Consulting, All rights reserved.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script>
+        // Due diligence assessment criteria
+        const dueDiligenceCriteria = {
+            legal: {
+                title: "Legal & Regulatory Compliance",
+                weight: 25,
+                items: [
+                    { 
+                        requirement: "Valid licenses and authorizations for business activities", 
+                        weight: 25,
+                        options: [
+                            { value: "compliant", text: "All licenses current and valid", score: 100 },
+                            { value: "minor", text: "Minor licensing gaps or renewals pending", score: 75 },
+                            { value: "major", text: "Major licensing issues or expired licenses", score: 25 },
+                            { value: "critical", text: "Operating without required licenses", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Compliance with industry regulations and standards", 
+                        weight: 20,
+                        options: [
+                            { value: "compliant", text: "Fully compliant with all regulations", score: 100 },
+                            { value: "minor", text: "Minor compliance gaps", score: 75 },
+                            { value: "major", text: "Significant compliance issues", score: 25 },
+                            { value: "critical", text: "Major regulatory violations", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Professional indemnity and liability insurance", 
+                        weight: 20,
+                        options: [
+                            { value: "compliant", text: "Adequate insurance coverage in place", score: 100 },
+                            { value: "minor", text: "Coverage slightly below requirements", score: 75 },
+                            { value: "major", text: "Inadequate coverage levels", score: 25 },
+                            { value: "critical", text: "No insurance or lapsed coverage", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "No outstanding regulatory sanctions or actions", 
+                        weight: 20,
+                        options: [
+                            { value: "compliant", text: "No regulatory issues", score: 100 },
+                            { value: "minor", text: "Minor historical issues resolved", score: 75 },
+                            { value: "major", text: "Outstanding regulatory matters", score: 25 },
+                            { value: "critical", text: "Active enforcement actions", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Documented compliance policies and procedures", 
+                        weight: 15,
+                        options: [
+                            { value: "compliant", text: "Comprehensive compliance framework", score: 100 },
+                            { value: "minor", text: "Basic compliance procedures", score: 75 },
+                            { value: "major", text: "Limited compliance documentation", score: 25 },
+                            { value: "critical", text: "No formal compliance procedures", score: 0 }
+                        ]
+                    }
+                ]
+            },
+            financial: {
+                title: "Financial Stability & Creditworthiness",
+                weight: 20,
+                items: [
+                    { 
+                        requirement: "Current financial position and stability", 
+                        weight: 30,
+                        options: [
+                            { value: "excellent", text: "Strong financial position", score: 100 },
+                            { value: "good", text: "Stable financial position", score: 75 },
+                            { value: "concerning", text: "Some financial concerns", score: 25 },
+                            { value: "poor", text: "Poor financial position", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Adequate working capital and cash flow", 
+                        weight: 25,
+                        options: [
+                            { value: "strong", text: "Strong liquidity position", score: 100 },
+                            { value: "adequate", text: "Adequate liquidity", score: 75 },
+                            { value: "tight", text: "Tight cash flow management", score: 25 },
+                            { value: "poor", text: "Cash flow difficulties", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Credit rating and payment history", 
+                        weight: 20,
+                        options: [
+                            { value: "excellent", text: "Excellent credit rating", score: 100 },
+                            { value: "good", text: "Good credit history", score: 75 },
+                            { value: "fair", text: "Fair credit with some issues", score: 25 },
+                            { value: "poor", text: "Poor credit history", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "No insolvency proceedings or judgments", 
+                        weight: 15,
+                        options: [
+                            { value: "clear", text: "No legal issues", score: 100 },
+                            { value: "minor", text: "Minor historical issues", score: 75 },
+                            { value: "concerning", text: "Some legal proceedings", score: 25 },
+                            { value: "major", text: "Active insolvency/judgments", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Audited financial statements available", 
+                        weight: 10,
+                        options: [
+                            { value: "current", text: "Current audited statements", score: 100 },
+                            { value: "recent", text: "Recent statements available", score: 75 },
+                            { value: "outdated", text: "Outdated financial information", score: 25 },
+                            { value: "none", text: "No audited statements", score: 0 }
+                        ]
+                    }
+                ]
+            },
+            operational: {
+                title: "Operational Capability & Service Quality",
+                weight: 15,
+                items: [
+                    { 
+                        requirement: "Sufficient resources and expertise", 
+                        weight: 30,
+                        options: [
+                            { value: "excellent", text: "Exceptional capabilities", score: 100 },
+                            { value: "adequate", text: "Adequate resources", score: 75 },
+                            { value: "limited", text: "Limited capabilities", score: 25 },
+                            { value: "insufficient", text: "Insufficient resources", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Track record of service delivery", 
+                        weight: 25,
+                        options: [
+                            { value: "excellent", text: "Excellent track record", score: 100 },
+                            { value: "good", text: "Good service history", score: 75 },
+                            { value: "mixed", text: "Mixed performance record", score: 25 },
+                            { value: "poor", text: "Poor service history", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Business continuity and disaster recovery plans", 
+                        weight: 20,
+                        options: [
+                            { value: "comprehensive", text: "Comprehensive BCP", score: 100 },
+                            { value: "basic", text: "Basic continuity plans", score: 75 },
+                            { value: "limited", text: "Limited BCP coverage", score: 25 },
+                            { value: "none", text: "No business continuity plans", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Quality management systems and certifications", 
+                        weight: 15,
+                        options: [
+                            { value: "certified", text: "Quality certifications current", score: 100 },
+                            { value: "basic", text: "Basic quality management", score: 75 },
+                            { value: "limited", text: "Limited quality controls", score: 25 },
+                            { value: "none", text: "No quality management", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Capacity management and scalability", 
+                        weight: 10,
+                        options: [
+                            { value: "excellent", text: "Excellent scalability", score: 100 },
+                            { value: "adequate", text: "Adequate capacity", score: 75 },
+                            { value: "limited", text: "Limited scalability", score: 25 },
+                            { value: "poor", text: "Poor capacity management", score: 0 }
+                        ]
+                    }
+                ]
+            },
+            information: {
+                title: "Information Security & Data Protection",
+                weight: 15,
+                items: [
+                    { 
+                        requirement: "PoPIA and data protection compliance", 
+                        weight: 30,
+                        options: [
+                            { value: "compliant", text: "Fully PoPIA compliant", score: 100 },
+                            { value: "mostly", text: "Mostly compliant, minor gaps", score: 75 },
+                            { value: "partial", text: "Partial compliance", score: 25 },
+                            { value: "non-compliant", text: "Not PoPIA compliant", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Cybersecurity measures and protocols", 
+                        weight: 25,
+                        options: [
+                            { value: "robust", text: "Robust cybersecurity", score: 100 },
+                            { value: "adequate", text: "Adequate security measures", score: 75 },
+                            { value: "basic", text: "Basic security controls", score: 25 },
+                            { value: "inadequate", text: "Inadequate cybersecurity", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Data handling and transmission security", 
+                        weight: 20,
+                        options: [
+                            { value: "secure", text: "Secure data handling", score: 100 },
+                            { value: "mostly-secure", text: "Mostly secure practices", score: 75 },
+                            { value: "some-concerns", text: "Some security concerns", score: 25 },
+                            { value: "insecure", text: "Insecure data practices", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Incident response procedures", 
+                        weight: 15,
+                        options: [
+                            { value: "comprehensive", text: "Comprehensive incident response", score: 100 },
+                            { value: "basic", text: "Basic incident procedures", score: 75 },
+                            { value: "limited", text: "Limited incident response", score: 25 },
+                            { value: "none", text: "No incident procedures", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Security certifications and assessments", 
+                        weight: 10,
+                        options: [
+                            { value: "certified", text: "ISO 27001 or equivalent", score: 100 },
+                            { value: "assessed", text: "Regular security assessments", score: 75 },
+                            { value: "basic", text: "Basic security reviews", score: 25 },
+                            { value: "none", text: "No security certifications", score: 0 }
+                        ]
+                    }
+                ]
+            },
+            governance: {
+                title: "Governance & Management",
+                weight: 10,
+                items: [
+                    { 
+                        requirement: "Key management personnel qualifications", 
+                        weight: 30,
+                        options: [
+                            { value: "excellent", text: "Highly qualified management", score: 100 },
+                            { value: "adequate", text: "Adequately qualified", score: 75 },
+                            { value: "concerning", text: "Some qualification concerns", score: 25 },
+                            { value: "inadequate", text: "Inadequately qualified", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Corporate governance structures", 
+                        weight: 25,
+                        options: [
+                            { value: "strong", text: "Strong governance framework", score: 100 },
+                            { value: "adequate", text: "Adequate governance", score: 75 },
+                            { value: "weak", text: "Weak governance structures", score: 25 },
+                            { value: "poor", text: "Poor governance", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "No conflicts of interest identified", 
+                        weight: 20,
+                        options: [
+                            { value: "none", text: "No conflicts identified", score: 100 },
+                            { value: "minor", text: "Minor conflicts, well managed", score: 75 },
+                            { value: "concerning", text: "Concerning conflicts", score: 25 },
+                            { value: "major", text: "Major unmanaged conflicts", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Ethics and business conduct policies", 
+                        weight: 15,
+                        options: [
+                            { value: "comprehensive", text: "Comprehensive ethics framework", score: 100 },
+                            { value: "basic", text: "Basic ethics policies", score: 75 },
+                            { value: "limited", text: "Limited ethics guidance", score: 25 },
+                            { value: "none", text: "No ethics policies", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Board oversight and risk management", 
+                        weight: 10,
+                        options: [
+                            { value: "strong", text: "Strong board oversight", score: 100 },
+                            { value: "adequate", text: "Adequate oversight", score: 75 },
+                            { value: "weak", text: "Weak oversight", score: 25 },
+                            { value: "none", text: "No board oversight", score: 0 }
+                        ]
+                    }
+                ]
+            },
+            reputation: {
+                title: "Reputational & Market Standing",
+                weight: 8,
+                items: [
+                    { 
+                        requirement: "Market reputation and standing", 
+                        weight: 35,
+                        options: [
+                            { value: "excellent", text: "Excellent market reputation", score: 100 },
+                            { value: "good", text: "Good market standing", score: 75 },
+                            { value: "mixed", text: "Mixed market reputation", score: 25 },
+                            { value: "poor", text: "Poor market reputation", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "No negative media coverage or controversies", 
+                        weight: 25,
+                        options: [
+                            { value: "clean", text: "No negative media", score: 100 },
+                            { value: "minor", text: "Minor historical issues", score: 75 },
+                            { value: "concerning", text: "Some negative coverage", score: 25 },
+                            { value: "major", text: "Significant controversies", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Client testimonials and references", 
+                        weight: 20,
+                        options: [
+                            { value: "excellent", text: "Excellent client feedback", score: 100 },
+                            { value: "positive", text: "Positive references", score: 75 },
+                            { value: "mixed", text: "Mixed client feedback", score: 25 },
+                            { value: "poor", text: "Poor client references", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "No ongoing litigation or disputes", 
+                        weight: 20,
+                        options: [
+                            { value: "clear", text: "No litigation", score: 100 },
+                            { value: "minor", text: "Minor disputes", score: 75 },
+                            { value: "concerning", text: "Concerning litigation", score: 25 },
+                            { value: "major", text: "Major ongoing disputes", score: 0 }
+                        ]
+                    }
+                ]
+            },
+            aml: {
+                title: "Anti-Money Laundering & Sanctions",
+                weight: 4,
+                items: [
+                    { 
+                        requirement: "AML/CFT policies and procedures", 
+                        weight: 40,
+                        options: [
+                            { value: "comprehensive", text: "Comprehensive AML framework", score: 100 },
+                            { value: "adequate", text: "Adequate AML procedures", score: 75 },
+                            { value: "basic", text: "Basic AML compliance", score: 25 },
+                            { value: "inadequate", text: "Inadequate AML procedures", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "FICA compliance and customer due diligence", 
+                        weight: 30,
+                        options: [
+                            { value: "compliant", text: "Fully FICA compliant", score: 100 },
+                            { value: "mostly", text: "Mostly FICA compliant", score: 75 },
+                            { value: "partial", text: "Partial FICA compliance", score: 25 },
+                            { value: "non-compliant", text: "Not FICA compliant", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Sanctions screening procedures", 
+                        weight: 30,
+                        options: [
+                            { value: "comprehensive", text: "Comprehensive sanctions screening", score: 100 },
+                            { value: "basic", text: "Basic sanctions checks", score: 75 },
+                            { value: "limited", text: "Limited screening", score: 25 },
+                            { value: "none", text: "No sanctions screening", score: 0 }
+                        ]
+                    }
+                ]
+            },
+            continuity: {
+                title: "Business Continuity & Disaster Recovery",
+                weight: 3,
+                items: [
+                    { 
+                        requirement: "Documented business continuity plans", 
+                        weight: 40,
+                        options: [
+                            { value: "comprehensive", text: "Comprehensive BCP", score: 100 },
+                            { value: "adequate", text: "Adequate continuity planning", score: 75 },
+                            { value: "basic", text: "Basic continuity measures", score: 25 },
+                            { value: "none", text: "No continuity planning", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Regular testing and plan updates", 
+                        weight: 30,
+                        options: [
+                            { value: "regular", text: "Regular testing conducted", score: 100 },
+                            { value: "periodic", text: "Periodic testing", score: 75 },
+                            { value: "limited", text: "Limited testing", score: 25 },
+                            { value: "none", text: "No testing performed", score: 0 }
+                        ]
+                    },
+                    { 
+                        requirement: "Backup systems and alternative processes", 
+                        weight: 30,
+                        options: [
+                            { value: "robust", text: "Robust backup systems", score: 100 },
+                            { value: "adequate", text: "Adequate backup arrangements", score: 75 },
+                            { value: "basic", text: "Basic backup measures", score: 25 },
+                            { value: "inadequate", text: "Inadequate backup systems", score: 0 }
+                        ]
+                    }
+                ]
+            }
+        };
+
+        let polarChart = null;
+        let riskChart = null;
+
+        // Tab switching functionality
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tabName === 'summary') {
+                setTimeout(() => {
+                    updateCharts();
+                }, 100);
+            } else if (tabName === 'recommendations') {
+                generateRecommendations();
+            }
+        }
+
+        // Update summary when entity info changes
+        function updateSummary() {
+            setTimeout(() => {
+                updateCharts();
+            }, 100);
+        }
+
+        // Initialize charts
+        function initializeCharts() {
+            const polarCtx = document.getElementById('polarChart').getContext('2d');
+            const riskCtx = document.getElementById('riskChart').getContext('2d');
+
+            // Polar Chart for Due Diligence Scores
+            polarChart = new Chart(polarCtx, {
+                type: 'polarArea',
+                data: {
+                    labels: [
+                        'Legal & Regulatory Compliance',
+                        'Financial Stability & Creditworthiness',
+                        'Operational Capability & Service Quality',
+                        'Information Security & Data Protection',
+                        'Governance & Management',
+                        'Reputational & Market Standing',
+                        'Anti-Money Laundering & Sanctions',
+                        'Business Continuity & Disaster Recovery'
+                    ],
+                    datasets: [{
+                        label: 'Risk Score (%)',
+                        data: [0, 0, 0, 0, 0, 0, 0, 0],
+                        backgroundColor: [
+                            'rgba(52, 152, 219, 0.6)',
+                            'rgba(46, 204, 113, 0.6)',
+                            'rgba(155, 89, 182, 0.6)',
+                            'rgba(241, 196, 15, 0.6)',
+                            'rgba(230, 126, 34, 0.6)',
+                            'rgba(231, 76, 60, 0.6)',
+                            'rgba(52, 73, 94, 0.6)',
+                            'rgba(142, 68, 173, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(52, 152, 219, 1)',
+                            'rgba(46, 204, 113, 1)',
+                            'rgba(155, 89, 182, 1)',
+                            'rgba(241, 196, 15, 1)',
+                            'rgba(230, 126, 34, 1)',
+                            'rgba(231, 76, 60, 1)',
+                            'rgba(52, 73, 94, 1)',
+                            'rgba(142, 68, 173, 1)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 20,
+                            bottom: 20,
+                            left: 20,
+                            right: 20
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    return context[0].label;
+                                },
+                                label: function(context) {
+                                    return 'Score: ' + context.parsed + '%';
+                                },
+                                afterLabel: function(context) {
+                                    const score = context.parsed;
+                                    if (score >= 90) return '✅ Excellent';
+                                    if (score >= 75) return '✓ Good';
+                                    if (score >= 50) return '⚠️ Needs Improvement';
+                                    return '❌ Critical Issues';
+                                }
+                            },
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: 'white',
+                            bodyColor: 'white',
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100,
+                            min: 0,
+                            ticks: {
+                                stepSize: 20,
+                                font: {
+                                    size: 10,
+                                    weight: 'bold'
+                                },
+                                color: '#2c3e50',
+                                backdropColor: 'rgba(255, 255, 255, 0.8)',
+                                backdropPadding: 4,
+                                showLabelBackdrop: true
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.15)',
+                                lineWidth: 1,
+                                circular: true
+                            },
+                            angleLines: {
+                                display: true,
+                                color: 'rgba(0, 0, 0, 0.3)',
+                                lineWidth: 2
+                            },
+                            pointLabels: {
+                                display: true,
+                                centerPointLabels: false,
+                                font: {
+                                    size: 10,
+                                    weight: 'bold',
+                                    family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                                },
+                                color: '#2c3e50',
+                                padding: 15,
+                                callback: function(label) {
+                                    const words = label.split(' ');
+                                    if (words.length > 3) {
+                                        const mid = Math.ceil(words.length / 2);
+                                        return [
+                                            words.slice(0, mid).join(' '),
+                                            words.slice(mid).join(' ')
+                                        ];
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true,
+                        duration: 1200,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+
+            // Risk Distribution Chart
+            riskChart = new Chart(riskCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Low Risk (90-100%)', 'Medium Risk (75-89%)', 'High Risk (60-74%)', 'Critical Risk (<60%)'],
+                    datasets: [{
+                        data: [0, 0, 0, 0],
+                        backgroundColor: [
+                            'rgba(46, 204, 113, 0.8)',
+                            'rgba(241, 196, 15, 0.8)',
+                            'rgba(230, 126, 34, 0.8)',
+                            'rgba(231, 76, 60, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(46, 204, 113, 1)',
+                            'rgba(241, 196, 15, 1)',
+                            'rgba(230, 126, 34, 1)',
+                            'rgba(231, 76, 60, 1)'
+                        ],
+                        borderWidth: 2,
+                        hoverOffset: 15
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 10,
+                            bottom: 10,
+                            left: 10,
+                            right: 10
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                usePointStyle: true,
+                                font: {
+                                    size: 11
+                                },
+                                boxWidth: 12
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                                    return context.label + ': ' + context.parsed + ' areas (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    },
+                    cutout: '60%',
+                    animation: {
+                        animateRotate: true,
+                        duration: 800
+                    }
+                }
+            });
+        }
+
+        // Update charts with current data
+        function updateCharts() {
+            if (!polarChart || !riskChart) return;
+
+            const polarData = [];
+            const sectionKeys = Object.keys(dueDiligenceCriteria);
+            
+            sectionKeys.forEach(sectionKey => {
+                const score = calculateSectionScore(sectionKey);
+                polarData.push(score);
+            });
+
+            polarChart.data.datasets[0].data = polarData;
+            polarChart.update('active');
+
+            // Update risk distribution chart
+            let lowRisk = 0;
+            let mediumRisk = 0;
+            let highRisk = 0;
+            let criticalRisk = 0;
+
+            sectionKeys.forEach(sectionKey => {
+                const sectionScore = calculateSectionScore(sectionKey);
+                
+                if (sectionScore >= 90) lowRisk++;
+                else if (sectionScore >= 75) mediumRisk++;
+                else if (sectionScore >= 60) highRisk++;
+                else criticalRisk++;
+            });
+
+            riskChart.data.datasets[0].data = [lowRisk, mediumRisk, highRisk, criticalRisk];
+            riskChart.update('active');
+        }
+
+        // Initialize the assessment tool
+        function initializeAssessment() {
+            document.getElementById('assessmentDate').value = new Date().toISOString().split('T')[0];
+            
+            // Populate assessment sections
+            const sectionsContainer = document.getElementById('assessment-sections');
+            sectionsContainer.innerHTML = '';
+            
+            Object.keys(dueDiligenceCriteria).forEach(sectionKey => {
+                const section = dueDiligenceCriteria[sectionKey];
+                
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'section';
+                sectionDiv.innerHTML = `
+                    <div class="section-header" onclick="toggleSection(this)">
+                        <h3>${section.title}<span class="section-weight">(Weight: ${section.weight}%)</span></h3>
+                        <span class="score-badge" id="${sectionKey}-score">0%</span>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="section-content">
+                        <table class="audit-table">
+                            <thead>
+                                <tr>
+                                    <th>Assessment Criteria</th>
+                                    <th>Status</th>
+                                    <th>Score</th>
+                                    <th>Weight</th>
+                                </tr>
+                            </thead>
+                            <tbody id="${sectionKey}-tbody">
+                                <!-- Will be populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                sectionsContainer.appendChild(sectionDiv);
+                
+                populateSection(sectionKey, section);
+            });
+            
+            setTimeout(() => {
+                initializeCharts();
+                calculateOverallScore();
+            }, 100);
+        }
+
+        // Populate a section with its criteria
+        function populateSection(sectionKey, sectionData) {
+            const tbody = document.getElementById(`${sectionKey}-tbody`);
+            tbody.innerHTML = '';
+            
+            sectionData.items.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="requirement">${item.requirement}</td>
+                    <td>
+                        <select class="status-select" onchange="updateScore('${sectionKey}', ${index}, this.value)" data-section="${sectionKey}" data-index="${index}">
+                            <option value="">Select status...</option>
+                            ${item.options.map(option => `<option value="${option.value}" data-score="${option.score}">${option.text}</option>`).join('')}
+                        </select>
+                    </td>
+                    <td>
+                        <div class="score-cell score-0" id="${sectionKey}-${index}-score">0</div>
+                    </td>
+                    <td style="text-align: center; font-weight: 600;">${item.weight}%</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Update score when a dropdown changes
+        function updateScore(sectionKey, itemIndex, selectedValue) {
+            const item = dueDiligenceCriteria[sectionKey].items[itemIndex];
+            const selectedOption = item.options.find(opt => opt.value === selectedValue);
+            const score = selectedOption ? selectedOption.score : 0;
+            
+            const scoreCell = document.getElementById(`${sectionKey}-${itemIndex}-score`);
+            scoreCell.textContent = score;
+            scoreCell.className = `score-cell score-${score}`;
+            
+            calculateSectionScore(sectionKey);
+            calculateOverallScore();
+            updateCharts();
+        }
+
+        // Calculate section score
+        function calculateSectionScore(sectionKey) {
+            const section = dueDiligenceCriteria[sectionKey];
+            let totalWeightedScore = 0;
+            let totalWeight = 0;
+            
+            section.items.forEach((item, index) => {
+                const scoreCell = document.getElementById(`${sectionKey}-${index}-score`);
+                const score = parseInt(scoreCell.textContent) || 0;
+                totalWeightedScore += (score * item.weight);
+                totalWeight += item.weight;
+            });
+            
+            const sectionScore = totalWeight > 0 ? Math.round(totalWeightedScore / totalWeight) : 0;
+            document.getElementById(`${sectionKey}-score`).textContent = `${sectionScore}%`;
+            
+            return sectionScore;
+        }
+
+        // Calculate overall risk score
+        function calculateOverallScore() {
+            let totalWeightedScore = 0;
+            let totalWeight = 0;
+            let criticalIssues = 0;
+            
+            Object.keys(dueDiligenceCriteria).forEach(sectionKey => {
+                const sectionScore = calculateSectionScore(sectionKey);
+                const sectionWeight = dueDiligenceCriteria[sectionKey].weight;
+                
+                totalWeightedScore += (sectionScore * sectionWeight);
+                totalWeight += sectionWeight;
+                
+                // Count critical issues (scores of 0)
+                dueDiligenceCriteria[sectionKey].items.forEach((item, index) => {
+                    const scoreCell = document.getElementById(`${sectionKey}-${index}-score`);
+                    const score = parseInt(scoreCell.textContent) || 0;
+                    if (score === 0) criticalIssues++;
+                });
+            });
+            
+            const overallScore = totalWeight > 0 ? Math.round(totalWeightedScore / totalWeight) : 0;
+            
+            // Update summary
+            document.getElementById('overall-score').textContent = `${overallScore}%`;
+            document.getElementById('critical-count').textContent = criticalIssues;
+            
+            // Determine risk level and review frequency
+            updateRiskLevel(overallScore, criticalIssues);
+        }
+
+        // Update risk level and recommendations
+        function updateRiskLevel(score, criticalIssues) {
+            const riskLevelDiv = document.getElementById('risk-level');
+            const reviewFrequencyDiv = document.getElementById('review-frequency');
+            
+            let riskLevel, riskClass, reviewFrequency;
+            
+            if (criticalIssues > 5 || score < 60) {
+                riskLevel = "CRITICAL RISK";
+                riskClass = "risk-critical";
+                reviewFrequency = "Monthly";
+            } else if (criticalIssues > 2 || score < 75) {
+                riskLevel = "HIGH RISK";
+                riskClass = "risk-high";
+                reviewFrequency = "Quarterly";
+            } else if (criticalIssues > 0 || score < 90) {
+                riskLevel = "MEDIUM RISK";
+                riskClass = "risk-medium";
+                reviewFrequency = "Semi-Annual";
+            } else {
+                riskLevel = "LOW RISK";
+                riskClass = "risk-low";
+                reviewFrequency = "Annual";
+            }
+            
+            riskLevelDiv.textContent = riskLevel;
+            riskLevelDiv.className = `risk-level ${riskClass}`;
+            reviewFrequencyDiv.innerHTML = `<div class="summary-score" style="color: #8e44ad; font-size: 1.3rem;">${reviewFrequency}</div>`;
+        }
+
+        // Generate recommendations based on assessment
+        function generateRecommendations() {
+            const overallScore = parseInt(document.getElementById('overall-score').textContent) || 0;
+            const criticalCount = parseInt(document.getElementById('critical-count').textContent) || 0;
+            const riskLevel = document.getElementById('risk-level').textContent;
+            
+            const recommendationsDiv = document.getElementById('recommendations-content');
+            let recommendations = '';
+            
+            // General recommendations based on risk level
+            if (riskLevel.includes('CRITICAL')) {
+                recommendations += `
+                    <div class="recommendation-card" style="border-left-color: #e74c3c;">
+                        <h4>🚨 IMMEDIATE ACTION REQUIRED</h4>
+                        <p>This third party presents critical risk. Consider suspending the relationship until all critical issues are resolved. Implement daily monitoring and require immediate remediation plans.</p>
+                    </div>
+                    <div class="recommendation-card" style="border-left-color: #e74c3c;">
+                        <h4>📋 Remediation Plan</h4>
+                        <p>Develop and implement a comprehensive remediation plan within 48 hours. All critical issues must be addressed within 30 days with weekly progress reviews.</p>
+                    </div>
+                `;
+            } else if (riskLevel.includes('HIGH')) {
+                recommendations += `
+                    <div class="recommendation-card" style="border-left-color: #e67e22;">
+                        <h4>📈 Enhancement Requirements</h4>
+                        <p>Require the third party to provide detailed improvement plans within 2 weeks. Schedule follow-up assessments quarterly and implement enhanced contract terms.</p>
+                    </div>
+                `;
+            } else if (riskLevel.includes('MEDIUM')) {
+                recommendations += `
+                    <div class="recommendation-card" style="border-left-color: #f39c12;">
+                        <h4>📊 MEDIUM PRIORITY MONITORING</h4>
+                        <p>This third party requires regular monitoring with semi-annual reviews. Address identified gaps within 60 days and maintain enhanced documentation.</p>
+                    </div>
+                    <div class="recommendation-card" style="border-left-color: #f39c12;">
+                        <h4>🔄 Continuous Improvement</h4>
+                        <p>Work with the third party to develop improvement initiatives. Consider additional training, process enhancements, or system upgrades where needed.</p>
+                    </div>
+                `;
+            } else {
+                recommendations += `
+                    <div class="recommendation-card" style="border-left-color: #27ae60;">
+                        <h4>✅ MAINTAIN CURRENT STANDARDS</h4>
+                        <p>This third party demonstrates excellent compliance and low risk. Continue current monitoring practices with annual reviews and maintain existing relationship terms.</p>
+                    </div>
+                    <div class="recommendation-card" style="border-left-color: #27ae60;">
+                        <h4>🌟 Best Practice Partner</h4>
+                        <p>Consider this third party as a model for others. Document their best practices and potentially expand the relationship scope or consider strategic partnership opportunities.</p>
+                    </div>
+                `;
+            }
+            
+            // Specific recommendations based on section scores
+            Object.keys(dueDiligenceCriteria).forEach(sectionKey => {
+                const sectionScore = calculateSectionScore(sectionKey);
+                const section = dueDiligenceCriteria[sectionKey];
+                
+                if (sectionScore < 60) {
+                    let color = '#e74c3c';
+                    let priority = '🚨 CRITICAL';
+                    if (sectionScore >= 40) {
+                        color = '#e67e22';
+                        priority = '⚠️ HIGH PRIORITY';
+                    }
+                    
+                    recommendations += `
+                        <div class="recommendation-card" style="border-left-color: ${color};">
+                            <h4>${priority}: ${section.title}</h4>
+                            <p>Score: ${sectionScore}% - This area requires immediate attention. Review all criteria in this category and develop specific remediation actions.</p>
+                        </div>
+                    `;
+                }
+            });
+            
+            // Contract and legal recommendations
+            recommendations += `
+                <div class="recommendation-card" style="border-left-color: #3498db;">
+                    <h4>📄 Contract Considerations</h4>
+                    <p>Based on this assessment, consider updating contract terms to include: enhanced reporting requirements, specific performance metrics, termination clauses, and regular review provisions.</p>
+                </div>
+                <div class="recommendation-card" style="border-left-color: #9b59b6;">
+                    <h4>📅 Ongoing Monitoring</h4>
+                    <p>Implement ongoing monitoring procedures including: regular financial reviews, compliance certifications, incident reporting, and periodic on-site assessments as appropriate.</p>
+                </div>
+            `;
+            
+            recommendationsDiv.innerHTML = recommendations;
+        }
+
+        // Toggle section visibility
+        function toggleSection(header) {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('.toggle-icon');
+            
+            if (content.classList.contains('active')) {
+                content.classList.remove('active');
+                icon.classList.remove('rotated');
+            } else {
+                content.classList.add('active');
+                icon.classList.add('rotated');
+            }
+        }
+
+        // Export to CSV
+        function exportToCSV() {
+            const entityName = document.getElementById('entityName').value || 'Unknown Entity';
+            const registrationNumber = document.getElementById('registrationNumber').value || 'Unknown';
+            const assessmentDate = document.getElementById('assessmentDate').value || new Date().toISOString().split('T')[0];
+            const assessor = document.getElementById('assessor').value || 'Unknown Assessor';
+            const serviceType = document.getElementById('serviceType').value || 'Unknown';
+            const relationshipValue = document.getElementById('relationshipValue').value || 'Unknown';
+            
+            let csv = 'Third Party Due Diligence Assessment Report\n\n';
+            csv += `Entity Name,${entityName}\n`;
+            csv += `Registration Number,${registrationNumber}\n`;
+            csv += `Assessment Date,${assessmentDate}\n`;
+            csv += `Assessor,${assessor}\n`;
+            csv += `Service Type,${serviceType}\n`;
+            csv += `Relationship Value,${relationshipValue}\n\n`;
+            
+            csv += 'Category,Criteria,Status,Score,Weight,Weighted Score\n';
+            
+            Object.keys(dueDiligenceCriteria).forEach(sectionKey => {
+                const section = dueDiligenceCriteria[sectionKey];
+                section.items.forEach((item, index) => {
+                    const select = document.querySelector(`select[data-section="${sectionKey}"][data-index="${index}"]`);
+                    const selectedOption = select.options[select.selectedIndex];
+                    const status = selectedOption ? selectedOption.text : 'Not assessed';
+                    const score = parseInt(document.getElementById(`${sectionKey}-${index}-score`).textContent) || 0;
+                    const weightedScore = (score * item.weight / 100).toFixed(2);
+                    
+                    csv += `"${section.title}","${item.requirement}","${status}",${score}%,${item.weight}%,${weightedScore}\n`;
+                });
+            });
+            
+            csv += '\nSummary\n';
+            csv += `Overall Risk Score,${document.getElementById('overall-score').textContent}\n`;
+            csv += `Critical Issues,${document.getElementById('critical-count').textContent}\n`;
+            csv += `Risk Level,${document.getElementById('risk-level').textContent}\n`;
+            csv += `Review Frequency,${document.querySelector('#review-frequency .summary-score').textContent}\n`;
+            
+            // Download CSV
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Third_Party_Due_Diligence_${entityName.replace(/\s+/g, '_')}_${assessmentDate}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Generate detailed report
+        function generateReport() {
+            const entityName = document.getElementById('entityName').value || 'Unknown Entity';
+            const registrationNumber = document.getElementById('registrationNumber').value || 'Unknown';
+            const assessmentDate = document.getElementById('assessmentDate').value || new Date().toISOString().split('T')[0];
+            const assessor = document.getElementById('assessor').value || 'Unknown Assessor';
+            const serviceType = document.getElementById('serviceType').value || 'Unknown';
+            const relationshipValue = document.getElementById('relationshipValue').value || 'Unknown';
+            const dataAccess = document.getElementById('dataAccess').value || 'Unknown';
+            const businessDescription = document.getElementById('businessDescription').value || 'No description provided';
+            
+            const overallScore = document.getElementById('overall-score').textContent;
+            const criticalCount = document.getElementById('critical-count').textContent;
+            const riskLevel = document.getElementById('risk-level').textContent;
+            const reviewFrequency = document.querySelector('#review-frequency .summary-score').textContent;
+            
+            let report = `
+THIRD PARTY DUE DILIGENCE ASSESSMENT REPORT
+
+================================================================
+ENTITY INFORMATION
+================================================================
+Entity Name: ${entityName}
+Registration Number: ${registrationNumber}
+Service Type: ${serviceType}
+Relationship Value: ${relationshipValue}
+Data Access Level: ${dataAccess}
+Business Description: ${businessDescription}
+Assessment Date: ${assessmentDate}
+Assessor: ${assessor}
+
+================================================================
+EXECUTIVE SUMMARY
+================================================================
+Overall Risk Score: ${overallScore}
+Risk Classification: ${riskLevel}
+Critical Issues Identified: ${criticalCount}
+Recommended Review Frequency: ${reviewFrequency}
+
+================================================================
+DETAILED ASSESSMENT RESULTS
+================================================================
+`;
+
+            Object.keys(dueDiligenceCriteria).forEach(sectionKey => {
+                const section = dueDiligenceCriteria[sectionKey];
+                const sectionScore = document.getElementById(`${sectionKey}-score`).textContent;
+                
+                report += `\n${section.title.toUpperCase()} (Weight: ${section.weight}%)\n`;
+                report += `Section Score: ${sectionScore}\n`;
+                report += `${'='.repeat(60)}\n`;
+                
+                section.items.forEach((item, index) => {
+                    const select = document.querySelector(`select[data-section="${sectionKey}"][data-index="${index}"]`);
+                    const selectedOption = select.options[select.selectedIndex];
+                    const status = selectedOption ? selectedOption.text : 'Not assessed';
+                    const score = parseInt(document.getElementById(`${sectionKey}-${index}-score`).textContent) || 0;
+                    
+                    report += `\n• ${item.requirement}\n`;
+                    report += `  Assessment: ${status}\n`;
+                    report += `  Score: ${score}% (Weight: ${item.weight}%)\n`;
+                    
+                    if (score === 0) {
+                        report += `  ⚠️  CRITICAL ISSUE - IMMEDIATE ACTION REQUIRED\n`;
+                    } else if (score < 50) {
+                        report += `  ⚡ HIGH PRIORITY - Remediation needed\n`;
+                    } else if (score < 75) {
+                        report += `  📋 MEDIUM PRIORITY - Improvement recommended\n`;
+                    }
+                });
+            });
+            
+            report += `\n\n================================================================
+RISK MANAGEMENT RECOMMENDATIONS
+================================================================
+`;
+
+            // Add risk-specific recommendations
+            if (riskLevel.includes('CRITICAL')) {
+                report += `
+CRITICAL RISK MANAGEMENT:
+• Immediate suspension of relationship until critical issues resolved
+• Daily monitoring and weekly progress reviews required
+• Comprehensive remediation plan due within 48 hours
+• All critical issues must be addressed within 30 days
+• Consider regulatory notification if required
+• Legal review of contract termination options
+`;
+            } else if (riskLevel.includes('HIGH')) {
+                report += `
+HIGH RISK MANAGEMENT:
+• Enhanced monitoring and quarterly reviews required
+• Corrective action plan due within 1 week
+• Address all identified issues within 60 days
+• Implement additional contract safeguards
+• Consider risk mitigation insurance
+• Regular management reporting required
+`;
+            } else if (riskLevel.includes('MEDIUM')) {
+                report += `
+MEDIUM RISK MANAGEMENT:
+• Semi-annual reviews and monitoring required
+• Improvement plan due within 2 weeks
+• Address identified gaps within 90 days
+• Maintain current contract terms with enhancements
+• Document improvement progress
+• Consider additional training or support
+`;
+            } else {
+                report += `
+LOW RISK MANAGEMENT:
+• Annual reviews sufficient
+• Maintain current monitoring practices
+• Continue existing contract terms
+• Document best practices for other relationships
+• Consider expanded partnership opportunities
+• Use as benchmark for other third parties
+`;
+            }
+            
+            report += `\n\n================================================================
+ONGOING MONITORING REQUIREMENTS
+================================================================
+• Financial monitoring: Review annual financial statements
+• Compliance monitoring: Quarterly compliance certifications
+• Operational monitoring: Semi-annual performance reviews
+• Security monitoring: Annual cybersecurity assessments
+• Reputational monitoring: Ongoing media and regulatory monitoring
+• Contract monitoring: Regular contract performance reviews
+
+================================================================
+REGULATORY CONSIDERATIONS
+================================================================
+• Financial Advisory and Intermediary Services Act (FAIS)
+• Financial Sector Conduct Authority (FSCA) regulations
+• Protection of Personal Information Act (PoPIA)
+• Financial Intelligence Centre Act (FICA)
+• Companies Act requirements
+• Industry-specific regulations and standards
+
+Report generated on: ${new Date().toLocaleString()}
+Assessment valid until: ${new Date(Date.now() + 365*24*60*60*1000).toLocaleDateString()}
+`;
+            
+            // Download report
+            const blob = new Blob([report], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Third_Party_Due_Diligence_Report_${entityName.replace(/\s+/g, '_')}_${assessmentDate}.txt`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Print assessment
+        function printAssessment() {
+            window.print();
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializeAssessment);
+    </script>
+</body>
+</html>
